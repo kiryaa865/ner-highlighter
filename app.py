@@ -9,19 +9,20 @@ import time
 # Load Streamlit secrets
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Initialize Stanza and SpaCy models for Ukrainian
-stanza.download('uk', processors='tokenize,ner')
-stanza_nlp = stanza.Pipeline(lang='uk', processors='tokenize,ner')
-spacy.cli.download("uk_core_news_sm")
-spacy_nlp = spacy.load("uk_core_news_sm")
+# Initialize models only once to save resources
+@st.cache_resource
+def load_models():
+    stanza.download('uk', processors='tokenize,ner')
+    stanza_nlp = stanza.Pipeline(lang='uk', processors='tokenize,ner')
+    spacy.cli.download("uk_core_news_sm")
+    spacy_nlp = spacy.load("uk_core_news_sm")
+    flair_tagger = SequenceTagger.load("lang-uk/flair-uk-ner")
+    tokenizer = AutoTokenizer.from_pretrained("EvanD/xlm-roberta-base-ukrainian-ner-ukrner")
+    ner_model = AutoModelForTokenClassification.from_pretrained("EvanD/xlm-roberta-base-ukrainian-ner-ukrner")
+    nlp = pipeline("ner", model=ner_model, tokenizer=tokenizer, aggregation_strategy="simple")
+    return stanza_nlp, spacy_nlp, flair_tagger, nlp
 
-# Load Flair model
-flair_tagger = SequenceTagger.load("lang-uk/flair-uk-ner")
-
-# Load XLM-RoBERTa model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained("EvanD/xlm-roberta-base-ukrainian-ner-ukrner")
-ner_model = AutoModelForTokenClassification.from_pretrained("EvanD/xlm-roberta-base-ukrainian-ner-ukrner")
-nlp = pipeline("ner", model=ner_model, tokenizer=tokenizer, aggregation_strategy="simple")
+stanza_nlp, spacy_nlp, flair_tagger, nlp = load_models()
 
 # NER functions
 def stanza_ner(text):
@@ -87,4 +88,3 @@ if st.button("Analyze"):
 
         st.subheader("XLM-RoBERTa NER:")
         st.write(formatted_xlm_roberta_results)
-
