@@ -6,6 +6,13 @@ from flair.models import SequenceTagger
 from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
 import openai
 import time
+hide_streamlit_style = """
+            <style>
+            [data-testid="stToolbar"] {visibility: hidden !important;}
+            footer {visibility: hidden !important;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # Load Streamlit secrets
 openai.api_key = st.secrets["OPENAI_API_KEY"]
