@@ -1,6 +1,7 @@
 import streamlit as st
 import stanza
 import spacy
+import flair
 from flair.models import SequenceTagger
 from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
 import openai
